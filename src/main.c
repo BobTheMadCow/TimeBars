@@ -89,7 +89,7 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 	
 	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
 
-  	graphics_text_draw(ctx, hour, FONT, GRect(HOUR_LOC, (y - MAX_BAR_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  	graphics_text_draw(ctx, "hour", FONT, GRect(HOUR_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 }
 
 
@@ -120,7 +120,7 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 	
 	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
 
-  	graphics_text_draw(ctx, minute, FONT, GRect(MINUTE_LOC, (y - MAX_BAR_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  	graphics_text_draw(ctx, "minute", FONT, GRect(MINUTE_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 }
 
 void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t)
