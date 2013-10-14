@@ -60,25 +60,24 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 	
 	PblTm pblTime;
 	get_time(&pblTime);
+	int hour = pblTime.tm_hour;
 	
 	int16_t x, y, w, h;
 	float adjusted_hour_unit_height = HOUR_UNIT_HEIGHT;
-	//int hour_mode = 12;
 	
 	if(clock_is_24h_style())
 	{
-		//hour_mode = 24;
 		adjusted_hour_unit_height = HOUR_UNIT_HEIGHT / 2.0f;
 	}
-	//else
-	//{
-	//	hour = hour % 12;
-	//}
+	else
+	{
+		hour = hour % 12;
+	}
 	
 	x = HOUR_LOC;
-	y = BAR_MIN_LOC - (int)(pblTime.tm_hour * adjusted_hour_unit_height);
+	y = BAR_MIN_LOC - (int)(hour * adjusted_hour_unit_height);
 	w = HOUR_WIDTH;
-	h = (int)(pblTime.tm_hour * adjusted_hour_unit_height);
+	h = (int)(hour * adjusted_hour_unit_height);
 	
 	graphics_context_set_stroke_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_fill_color(ctx, FOREGROUND_COLOR);
@@ -89,9 +88,6 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 		CORNER_SIZE,//uint8_t corner_radius, 
 		CORNER_MASK //GCornerMask corner_mask
 	);
-		
-	//layer_set_frame(&hh_label_layer.layer, GRect( 0, 0, 72, BAR_MAX_LOC));
-	//text_layer_set_text(&hh_label_layer, pblTime.tm_hour);
 }
 
 void update_minute_bar_callback(Layer *me, GContext* ctx)
@@ -117,9 +113,40 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 		CORNER_SIZE,//uint8_t corner_radius, 
 		CORNER_MASK //GCornerMask corner_mask
 	);
+}
+
+void mm_label_update_callback(Layer *me, GContext* ctx)
+{
+	PblTm pblTime;
+	get_time(&pblTime);
+	minute = pblTime.tm_min;
+	int16_t y = BAR_MIN_LOC - (int)(minute * MINUTE_UNIT_HEIGHT) - BAR_MAX_LOC;
+		
+	layer_set_frame(me, GRect( MINUTE_LOC, y, 72, BAR_MAX_LOC));
+	text_layer_set_text(me, minute);
+}
 	
-	//layer_set_frame(&hh_label_layer.layer, GRect( 0, 0, 72, BAR_MAX_LOC));
-	//text_layer_set_text(&hh_label_layer, pblTime.tm_min);
+void hh_label_update_callback(Layer *me, GContext* ctx)
+{
+	PblTm pblTime;
+	get_time(&pblTime);
+	int hour = pblTime.tm_hour;
+	
+	float adjusted_hour_unit_height = HOUR_UNIT_HEIGHT;
+	
+	if(clock_is_24h_style())
+	{
+		adjusted_hour_unit_height = HOUR_UNIT_HEIGHT / 2.0f;
+	}
+	else
+	{
+		hour = hour % 12;
+	}
+
+	int16_t y = BAR_MIN_LOC - (int)(hour * adjusted_hour_unit_height) - BAR_MAX_LOC;
+		
+	layer_set_frame(me, GRect( HOUR_LOC, y, 72, BAR_MAX_LOC));
+	text_layer_set_text(me, minute);
 }
 
 void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t)
@@ -148,7 +175,7 @@ void handle_init(AppContextRef ctx)
 	text_layer_init(&hour_label_layer, window.layer.frame);
 	text_layer_set_text_color(&hour_label_layer, FOREGROUND_COLOR);
 	text_layer_set_background_color(&hour_label_layer, BACKGROUND_COLOR);
-	layer_set_frame(&hour_label_layer.layer, GRect(BAR_MIN_LOC, 0, 72, (168 - BAR_MIN_LOC)));
+	layer_set_frame(&hour_label_layer.layer, GRect(0, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)));
 	text_layer_set_font(&hour_label_layer, FONT);
 	text_layer_set_text(&hour_label_layer, HOUR_LABEL_TEXT);
 	layer_add_child(&window.layer, &hour_label_layer.layer);
@@ -156,7 +183,7 @@ void handle_init(AppContextRef ctx)
 	text_layer_init(&minute_label_layer, window.layer.frame);
 	text_layer_set_text_color(&minute_label_layer, FOREGROUND_COLOR);
 	text_layer_set_background_color(&minute_label_layer, BACKGROUND_COLOR);
-	layer_set_frame(&minute_label_layer.layer, GRect(BAR_MIN_LOC, 72, 72, (168 - BAR_MIN_LOC)));
+	layer_set_frame(&minute_label_layer.layer, GRect(72, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)));
 	text_layer_set_font(&minute_label_layer, FONT);
 	text_layer_set_text(&minute_label_layer, MINUTE_LABEL_TEXT);
 	layer_add_child(&window.layer, &minute_label_layer.layer);
@@ -175,6 +202,7 @@ void handle_init(AppContextRef ctx)
 	layer_set_frame(&hh_label_layer.layer, GRect( 0, 0, 72, BAR_MAX_LOC));
 	text_layer_set_font(&hh_label_layer, FONT);
 	text_layer_set_text(&hh_label_layer, "HH");
+	hh_label_layer.update_proc = hh_label_update_callback;
 	layer_add_child(&hour_bar_layer, &hh_label_layer.layer);
 
 	text_layer_init(&mm_label_layer, window.layer.frame);
@@ -183,6 +211,7 @@ void handle_init(AppContextRef ctx)
 	layer_set_frame(&mm_label_layer.layer, GRect( 72, 0, 72, BAR_MAX_LOC));
 	text_layer_set_font(&mm_label_layer, FONT);
 	text_layer_set_text(&mm_label_layer, "MM");
+	mm_label_layer.update_proc = mm_label_update_callback;
 	layer_add_child(&minute_bar_layer, &mm_label_layer.layer);}
 
 
