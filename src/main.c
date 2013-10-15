@@ -11,8 +11,6 @@ PBL_APP_INFO(MY_UUID,
              APP_INFO_WATCH_FACE);
 
 Window window;
-TextLayer hour_label_layer;
-TextLayer minute_label_layer;
 Layer hour_bar_layer;
 Layer minute_bar_layer;
 
@@ -52,30 +50,14 @@ Layer minute_bar_layer;
 #define BACKGROUND_COLOR GColorWhite
 #define FOREGROUND_COLOR GColorBlack
 
-void update_hour_bar_callback(Layer *me, GContext* ctx)
+void draw_hour_bar(/*Layer *me,*/ GContext* ctx, int hour, int hour_unit_height)
 {
-	(void)ctx;
-	
-	PblTm pblTime;
-	get_time(&pblTime);
-	int hour = pblTime.tm_hour;
-	
 	int16_t x, y, w, h;
-	float adjusted_hour_unit_height = HOUR_UNIT_HEIGHT;
-	
-	if(clock_is_24h_style())
-	{
-		adjusted_hour_unit_height = HOUR_UNIT_HEIGHT / 2.0f;
-	}
-	else
-	{
-		hour = hour % 12;
-	}
 	
 	x = HOUR_LOC;
-	y = BAR_MIN_LOC - (int)(hour * adjusted_hour_unit_height);
+	y = BAR_MIN_LOC - (int)(hour * hour_unit_height);
 	w = HOUR_WIDTH;
-	h = (int)(hour * adjusted_hour_unit_height);
+	h = (int)(hour * hour_unit_height);
 	
 	graphics_context_set_stroke_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_fill_color(ctx, FOREGROUND_COLOR);
@@ -92,15 +74,41 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
   	graphics_text_draw(ctx, "hour", FONT, GRect(HOUR_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 }
 
-
-void update_minute_bar_callback(Layer *me, GContext* ctx)
+void update_hour_bar_callback(Layer *me, GContext* ctx)
 {
-	(void)ctx;
-	
 	PblTm pblTime;
 	get_time(&pblTime);
-	int minute = pblTime.tm_min;
+	int hour = pblTime.tm_hour;
+	int hour_mode;
+	float adjusted_hour_unit_height = HOUR_UNIT_HEIGHT;
 	
+	if(clock_is_24h_style())
+	{
+		adjusted_hour_unit_height = HOUR_UNIT_HEIGHT / 2.0f;
+		hour_mode = 24;
+	}
+	else
+	{
+		if(hour > 12){hour -= 12;}
+		hour_mode = 12;
+	}
+	
+	if( (hour_mode == 12 && hour == 1) || (hour_mode == 24 && hour == 0))
+	{
+		for(int i = hour_mode; i > hour; i--)
+		{
+			draw_hour_bar(/*&me,*/ ctx, i, adjusted_hour_unit_height);
+			//pause for 6000/hour_mode miliseconds.
+		}
+	}
+	else
+	{
+		draw_hour_bar(/*&me,*/ ctx, hour, adjusted_hour_unit_height);
+	}
+}
+
+void draw_minute_bar(/*Layer *me,*/ GContext* ctx, int minute)
+{
 	int16_t x, y, w, h;
 	
 	x = MINUTE_LOC;
@@ -111,23 +119,35 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 	graphics_context_set_stroke_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_fill_color(ctx, FOREGROUND_COLOR);
 		
-	graphics_fill_rect(
-		ctx,//GContext *ctx, 
-		GRect( x, y, w, h ),//GRect rect, 
-		CORNER_SIZE,//uint8_t corner_radius, 
-		CORNER_MASK //GCornerMask corner_mask
-	);
+	graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
 	
 	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
 
   	graphics_text_draw(ctx, "minute", FONT, GRect(MINUTE_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 }
 
+void update_minute_bar_callback(Layer *me, GContext* ctx)
+{
+	PblTm pblTime;
+	get_time(&pblTime);
+	int minute = pblTime.tm_min;
+	
+	if( minute != 0)
+	{
+		draw_minute_bar(/*&me,*/ ctx, minute);
+	}
+	else
+	{
+		for(int i = 60; i < 0; i--)
+		{
+			draw_minute_bar(/*&me,*/ ctx, i);
+			//pause for 100 milliseconds
+		}
+	}
+}
+
 void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t)
 {
-	(void)t;
-	(void)ctx;
-	
 	PblTm pblTime;
 	get_time(&pblTime);
 	
@@ -146,21 +166,10 @@ void handle_init(AppContextRef ctx)
 	window_stack_push(&window, true /* Animated */);
 	window_set_background_color(&window, BACKGROUND_COLOR);
 	
-	text_layer_init(&hour_label_layer, window.layer.frame);
-	text_layer_set_text_color(&hour_label_layer, FOREGROUND_COLOR);
-	text_layer_set_background_color(&hour_label_layer, BACKGROUND_COLOR);
-	layer_set_frame(&hour_label_layer.layer, GRect(0, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)));
-	text_layer_set_font(&hour_label_layer, FONT);
-	text_layer_set_text(&hour_label_layer, HOUR_LABEL_TEXT);
-	layer_add_child(&window.layer, &hour_label_layer.layer);
-	
-	text_layer_init(&minute_label_layer, window.layer.frame);
-	text_layer_set_text_color(&minute_label_layer, FOREGROUND_COLOR);
-	text_layer_set_background_color(&minute_label_layer, BACKGROUND_COLOR);
-	layer_set_frame(&minute_label_layer.layer, GRect(72, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)));
-	text_layer_set_font(&minute_label_layer, FONT);
-	text_layer_set_text(&minute_label_layer, MINUTE_LABEL_TEXT);
-	layer_add_child(&window.layer, &minute_label_layer.layer);
+	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
+
+  	graphics_text_draw(ctx, HOUR_LABEL_TEXT, FONT, GRect(0, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  	graphics_text_draw(ctx, MINUTE_LABEL_TEXT, FONT, GRect(72, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 	
 	layer_init(&hour_bar_layer, window.layer.frame);
 	hour_bar_layer.update_proc = update_hour_bar_callback;
