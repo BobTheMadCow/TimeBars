@@ -50,7 +50,7 @@ Layer minute_bar_layer;
 #define BACKGROUND_COLOR GColorWhite
 #define FOREGROUND_COLOR GColorBlack
 
-void draw_hour_bar(/*Layer *me,*/ GContext* ctx, int hour, int hour_unit_height)
+void draw_hour_bar(GContext* ctx, int hour, int hour_unit_height)
 {
 	int16_t x, y, w, h;
 	
@@ -97,17 +97,17 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 	{
 		for(int i = hour_mode; i > hour; i--)
 		{
-			draw_hour_bar(/*&me,*/ ctx, i, adjusted_hour_unit_height);
+			draw_hour_bar(ctx, i, adjusted_hour_unit_height);
 			//pause for 6000/hour_mode miliseconds.
 		}
 	}
 	else
 	{
-		draw_hour_bar(/*&me,*/ ctx, hour, adjusted_hour_unit_height);
+		draw_hour_bar(ctx, hour, adjusted_hour_unit_height);
 	}
 }
 
-void draw_minute_bar(/*Layer *me,*/ GContext* ctx, int minute)
+void draw_minute_bar(GContext* ctx, int minute)
 {
 	int16_t x, y, w, h;
 	
@@ -134,13 +134,13 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 	
 	if( minute != 0)
 	{
-		draw_minute_bar(/*&me,*/ ctx, minute);
+		draw_minute_bar(ctx, minute);
 	}
 	else
 	{
 		for(int i = 60; i < 0; i--)
 		{
-			draw_minute_bar(/*&me,*/ ctx, i);
+			draw_minute_bar(ctx, i);
 			//pause for 100 milliseconds
 		}
 	}
