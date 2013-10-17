@@ -49,6 +49,10 @@ Layer minute_bar_layer;
 
 #define BACKGROUND_COLOR GColorWhite
 #define FOREGROUND_COLOR GColorBlack
+	
+// Need to be static because it's used by the system later.
+static char hour_text[] = "00";
+static char minute_text[] = "00";
 
 void update_hour_bar_callback(Layer *me, GContext* ctx)
 {
@@ -58,37 +62,47 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 //	int start = pblTime.tm_hour;
 //	int hour_mode;
 	float adjusted_hour_unit_height = HOUR_UNIT_HEIGHT;
-//	int16_t x, y, w, h;
-	int y;
+	int x, y, w, h;
+//	int y;
+	char *time_format;
+	
 	if(clock_is_24h_style())
 	{
 		adjusted_hour_unit_height = HOUR_UNIT_HEIGHT / 2.0f;
 //		hour_mode = 24;
 //		if(hour == 0){ start = hour_mode; }
+//	%H 	Two digit representation of the hour in 24-hour format 	00 through 23
+//	%k 	Two digit representation of the hour in 24-hour format, with a space preceding single digits 	0 through 23
+		time_format = "%H";
 	}
 	else
 	{
 		if(hour > 12){hour -= 12;}
 //		hour_mode = 12;
 //		if(hour == 1){ start = hour_mode; }
+//	%I 	Two digit representation of the hour in 12-hour format 	01 through 12
+//	%l (lower-case 'L') 	Hour in 12-hour format, with a space preceding single digits 	1 through 12
+		time_format = "%l";
 	}
 
 	graphics_context_set_stroke_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_fill_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
 
-//	x = HOUR_LOC;
-//	w = HOUR_WIDTH;
+	x = HOUR_LOC;
+	w = HOUR_WIDTH;
 	
 	int i = hour;
 //	for(int i = start; i >= hour; i--)
 //	{
 		y = BAR_MIN_LOC - (int)(i * adjusted_hour_unit_height);
-//		h = (int)(i * adjusted_hour_unit_height);
+		h = (int)(i * adjusted_hour_unit_height);
 	
-//		graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
+		graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
 
-	  	graphics_text_draw(ctx, "12", FONT, GRect(HOUR_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+	
+		string_format_time(hour_text, sizeof(hour_text), time_format, &pblTime);
+	  	graphics_text_draw(ctx, hour_text, FONT, GRect(HOUR_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 //	}
 }
 
@@ -98,15 +112,16 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 	get_time(&pblTime);
 	int minute  = pblTime.tm_min;
 //	int start = pblTime.tm_min;
-//	int16_t x, y, w, h;
-	int y;	
+	int16_t x, y, w, h;
+//	int y;	
 //	if( minute == 0)
 //	{
 //		start = 60;
 //	}
 
-//	x = MINUTE_LOC;
-//	w = MINUTE_WIDTH;
+	x = MINUTE_LOC;
+	w = MINUTE_WIDTH;
+
 	graphics_context_set_stroke_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_fill_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
@@ -115,10 +130,13 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 	//for(int i = start; i >= minute; i--)
 	//{
 		y = BAR_MIN_LOC - (int)(i * MINUTE_UNIT_HEIGHT);
-//		h = (int)(i * MINUTE_UNIT_HEIGHT);
+		h = (int)(i * MINUTE_UNIT_HEIGHT);
 
-//		graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
-	  	graphics_text_draw(ctx, "30", FONT, GRect(MINUTE_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+		graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
+//	%M 	Two digit representation of the minute 	00 through 59
+
+	string_format_time(minute_text, sizeof(minute_text), "%M", &pblTime);
+	graphics_text_draw(ctx, minute_text, FONT, GRect(MINUTE_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 //	}
 }
 
@@ -144,8 +162,8 @@ void handle_init(AppContextRef ctx)
 	
 	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
 
-  	graphics_text_draw(ctx, HOUR_LABEL_TEXT, FONT, GRect(0, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
-  	graphics_text_draw(ctx, MINUTE_LABEL_TEXT, FONT, GRect(72, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  	//graphics_text_draw(ctx, HOUR_LABEL_TEXT, FONT, GRect(0, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  	//graphics_text_draw(ctx, MINUTE_LABEL_TEXT, FONT, GRect(72, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 	
 	layer_init(&hour_bar_layer, window.layer.frame);
 	hour_bar_layer.update_proc = update_hour_bar_callback;
