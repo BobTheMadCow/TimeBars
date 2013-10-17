@@ -17,7 +17,7 @@ Layer minute_bar_layer;
 #define GRect( x, y, w,	h ) ((GRect){{(x), (y)}, {(w), (h)}})
 	
 #define CORNER_MASK GCornersTop
-#define CORNER_SIZE 6
+#define CORNER_SIZE 10
 
 //origin of Pebble's 2D coordinate system is in the upper, lefthand corner its x-axis 
 //extends to the right and its y-axis extends to the bottom of the screen. 
@@ -45,7 +45,7 @@ Layer minute_bar_layer;
 
 #define HOUR_LABEL_TEXT "HOUR"
 #define MINUTE_LABEL_TEXT "MINS"
-#define FONT fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK)
+#define FONT fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD)
 
 #define BACKGROUND_COLOR GColorWhite
 #define FOREGROUND_COLOR GColorBlack
@@ -63,7 +63,6 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 //	int hour_mode;
 	float adjusted_hour_unit_height = HOUR_UNIT_HEIGHT;
 	int x, y, w, h;
-//	int y;
 	char *time_format;
 	
 	if(clock_is_24h_style())
@@ -88,6 +87,8 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 	graphics_context_set_stroke_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_fill_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
+	
+	graphics_text_draw(ctx, HOUR_LABEL_TEXT, FONT, GRect(0, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 
 	x = HOUR_LOC;
 	w = HOUR_WIDTH;
@@ -99,10 +100,9 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 		h = (int)(i * adjusted_hour_unit_height);
 	
 		graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
-
 	
 		string_format_time(hour_text, sizeof(hour_text), time_format, &pblTime);
-	  	graphics_text_draw(ctx, hour_text, FONT, GRect(HOUR_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+	  	graphics_text_draw(ctx, hour_text, FONT, GRect(HOUR_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 //	}
 }
 
@@ -113,7 +113,6 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 	int minute  = pblTime.tm_min;
 //	int start = pblTime.tm_min;
 	int16_t x, y, w, h;
-//	int y;	
 //	if( minute == 0)
 //	{
 //		start = 60;
@@ -125,6 +124,8 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 	graphics_context_set_stroke_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_fill_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
+
+	graphics_text_draw(ctx, MINUTE_LABEL_TEXT, FONT, GRect(72, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 	
 	int i = minute;
 	//for(int i = start; i >= minute; i--)
@@ -133,10 +134,9 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 		h = (int)(i * MINUTE_UNIT_HEIGHT);
 
 		graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
-//	%M 	Two digit representation of the minute 	00 through 59
 
 	string_format_time(minute_text, sizeof(minute_text), "%M", &pblTime);
-	graphics_text_draw(ctx, minute_text, FONT, GRect(MINUTE_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+	graphics_text_draw(ctx, minute_text, FONT, GRect(MINUTE_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 //	}
 }
 
@@ -159,11 +159,6 @@ void handle_init(AppContextRef ctx)
 	window_init(&window, "TimeBars");
 	window_stack_push(&window, true /* Animated */);
 	window_set_background_color(&window, BACKGROUND_COLOR);
-	
-	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
-
-  	//graphics_text_draw(ctx, HOUR_LABEL_TEXT, FONT, GRect(0, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
-  	//graphics_text_draw(ctx, MINUTE_LABEL_TEXT, FONT, GRect(72, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 	
 	layer_init(&hour_bar_layer, window.layer.frame);
 	hour_bar_layer.update_proc = update_hour_bar_callback;
