@@ -45,7 +45,8 @@ Layer minute_bar_layer;
 
 #define HOUR_LABEL_TEXT "HOUR"
 #define MINUTE_LABEL_TEXT "MINS"
-#define FONT fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD)
+#define FONT fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TYPEONE_24))
+//#define FONT fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD)
 
 #define BACKGROUND_COLOR GColorWhite
 #define FOREGROUND_COLOR GColorBlack
@@ -59,8 +60,6 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 	PblTm pblTime;
 	get_time(&pblTime);
 	int hour = pblTime.tm_hour; 
-//	int start = pblTime.tm_hour;
-//	int hour_mode;
 	float adjusted_hour_unit_height = HOUR_UNIT_HEIGHT;
 	int x, y, w, h;
 	char *time_format;
@@ -68,17 +67,16 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 	if(clock_is_24h_style())
 	{
 		adjusted_hour_unit_height = HOUR_UNIT_HEIGHT / 2.0f;
-//		hour_mode = 24;
-//		if(hour == 0){ start = hour_mode; }
 //	%H 	Two digit representation of the hour in 24-hour format 	00 through 23
 //	%k 	Two digit representation of the hour in 24-hour format, with a space preceding single digits 	0 through 23
 		time_format = "%H";
 	}
 	else
 	{
-		if(hour > 12){hour -= 12;}
-//		hour_mode = 12;
-//		if(hour == 1){ start = hour_mode; }
+		if(hour > 12)
+		{
+			hour -= 12;
+		}
 //	%I 	Two digit representation of the hour in 12-hour format 	01 through 12
 //	%l (lower-case 'L') 	Hour in 12-hour format, with a space preceding single digits 	1 through 12
 		time_format = "%l";
@@ -91,19 +89,15 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 	graphics_text_draw(ctx, HOUR_LABEL_TEXT, FONT, GRect(0, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 
 	x = HOUR_LOC;
+	y = BAR_MIN_LOC - (int)(hour * adjusted_hour_unit_height);
 	w = HOUR_WIDTH;
-	
-	int i = hour;
-//	for(int i = start; i >= hour; i--)
-//	{
-		y = BAR_MIN_LOC - (int)(i * adjusted_hour_unit_height);
-		h = (int)(i * adjusted_hour_unit_height);
-	
-		graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
-	
-		string_format_time(hour_text, sizeof(hour_text), time_format, &pblTime);
-	  	graphics_text_draw(ctx, hour_text, FONT, GRect(HOUR_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-//	}
+	h = (int)(hour * adjusted_hour_unit_height);
+
+	graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
+
+	string_format_time(hour_text, sizeof(hour_text), time_format, &pblTime);
+  	graphics_text_draw(ctx, hour_text, FONT, GRect(HOUR_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+
 }
 
 void update_minute_bar_callback(Layer *me, GContext* ctx)
@@ -111,15 +105,7 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 	PblTm pblTime;
 	get_time(&pblTime);
 	int minute  = pblTime.tm_min;
-//	int start = pblTime.tm_min;
 	int16_t x, y, w, h;
-//	if( minute == 0)
-//	{
-//		start = 60;
-//	}
-
-	x = MINUTE_LOC;
-	w = MINUTE_WIDTH;
 
 	graphics_context_set_stroke_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_fill_color(ctx, FOREGROUND_COLOR);
@@ -127,17 +113,15 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 
 	graphics_text_draw(ctx, MINUTE_LABEL_TEXT, FONT, GRect(72, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 	
-	int i = minute;
-	//for(int i = start; i >= minute; i--)
-	//{
-		y = BAR_MIN_LOC - (int)(i * MINUTE_UNIT_HEIGHT);
-		h = (int)(i * MINUTE_UNIT_HEIGHT);
+	x = MINUTE_LOC;
+	y = BAR_MIN_LOC - (int)(minute * MINUTE_UNIT_HEIGHT);
+	w = MINUTE_WIDTH;
+	h = (int)(minute * MINUTE_UNIT_HEIGHT);
 
-		graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
+	graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
 
 	string_format_time(minute_text, sizeof(minute_text), "%M", &pblTime);
 	graphics_text_draw(ctx, minute_text, FONT, GRect(MINUTE_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-//	}
 }
 
 void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t)
@@ -155,7 +139,9 @@ void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t)
 void handle_init(AppContextRef ctx) 
 {
 	(void)ctx;
-
+	
+	resource_init_current_app(&APP_RESOURCES);
+	
 	window_init(&window, "TimeBars");
 	window_stack_push(&window, true /* Animated */);
 	window_set_background_color(&window, BACKGROUND_COLOR);

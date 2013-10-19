@@ -1,9 +1,10 @@
 {
     "media": [
         {
-            "defName": "DUMMY",
-            "type": "raw",
-            "file": "resource_map.json"
+            "characterRegex": "[0-9HOUR MINS]",
+            "defName": "FONT_TYPEONE_24",
+            "type": "font",
+            "file": "fonts/typeone.ttf"
         }
     ],
     "friendlyVersion": "VERSION",
