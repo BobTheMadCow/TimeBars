@@ -17,35 +17,39 @@ Layer minute_bar_layer;
 #define GRect( x, y, w,	h ) ((GRect){{(x), (y)}, {(w), (h)}})
 	
 #define CORNER_MASK GCornersTop
-#define CORNER_SIZE 10
+#define CORNER_SIZE 12
 
 //origin of Pebble's 2D coordinate system is in the upper, lefthand corner its x-axis 
 //extends to the right and its y-axis extends to the bottom of the screen. 
 /********************
-	 5 62 10 62 5
-	+------------+ ^
-	|  12    59  | 24
-	| ,--.  ,--. | X
-	| |  |  |  | | |
-	| |  |  |  | | 144
-	| |  |  |  | | |
-	| +--+  +--+ | X
-	| HOUR  MINS | 24
-	+------------+ v
+	+--------+ 
+	| 12  59 | 
+	|,--.,--.| 
+	||  ||  || 
+	||  ||  || 
+	|+--++--+| 
+	|HOURMINS| 
+	+--------+ 
 *********************/
-#define BAR_MAX_LOC 24
-#define BAR_MIN_LOC 144
+#define BAR_MAX_LOC 22
+#define BAR_MIN_LOC 150
 #define MAX_HEIGHT (BAR_MIN_LOC - BAR_MAX_LOC)
-#define HOUR_LOC 5
-#define MINUTE_LOC 77
-#define HOUR_WIDTH 62
-#define MINUTE_WIDTH 62
+#define HOUR_LOC 4
+#define MINUTE_LOC 74
+#define HOUR_WIDTH 66
+#define MINUTE_WIDTH 66
 #define HOUR_UNIT_HEIGHT (MAX_HEIGHT/12.0f)
 #define MINUTE_UNIT_HEIGHT (MAX_HEIGHT/60.0f)
+#define TEXT_LABEL_MAX_LOC 142
+#define TEXT_LABEL_MIN_LOC 168
+#define TEXT_LABEL_HEIGHT (TEXT_LABEL_MIN_LOC - TEXT_LABEL_MAX_LOC)
+#define NUM_LABEL_MAX_LOC (y - BAR_MAX_LOC - 14 )
+#define NUM_LABEL_HEIGHT 46
 
 #define HOUR_LABEL_TEXT "HOUR"
 #define MINUTE_LABEL_TEXT "MINS"
-#define FONT fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TYPEONE_24))
+#define TEXT_FONT fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TYPEONE_24))
+#define NUM_FONT fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TYPEONE_34))
 //#define FONT fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD)
 
 #define BACKGROUND_COLOR GColorWhite
@@ -81,12 +85,11 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 //	%l (lower-case 'L') 	Hour in 12-hour format, with a space preceding single digits 	1 through 12
 		time_format = "%l";
 	}
+	string_format_time(hour_text, sizeof(hour_text), time_format, &pblTime);
 
 	graphics_context_set_stroke_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_fill_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
-	
-	graphics_text_draw(ctx, HOUR_LABEL_TEXT, FONT, GRect(0, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 
 	x = HOUR_LOC;
 	y = BAR_MIN_LOC - (int)(hour * adjusted_hour_unit_height);
@@ -94,10 +97,8 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 	h = (int)(hour * adjusted_hour_unit_height);
 
 	graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
-
-	string_format_time(hour_text, sizeof(hour_text), time_format, &pblTime);
-  	graphics_text_draw(ctx, hour_text, FONT, GRect(HOUR_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-
+  	graphics_text_draw(ctx, hour_text, NUM_FONT, GRect(0, NUM_LABEL_MAX_LOC, 72, NUM_LABEL_HEIGHT), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+	graphics_text_draw(ctx, HOUR_LABEL_TEXT, TEXT_FONT, GRect(0, TEXT_LABEL_MAX_LOC, 72, TEXT_LABEL_HEIGHT), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 }
 
 void update_minute_bar_callback(Layer *me, GContext* ctx)
@@ -107,21 +108,20 @@ void update_minute_bar_callback(Layer *me, GContext* ctx)
 	int minute  = pblTime.tm_min;
 	int16_t x, y, w, h;
 
+	string_format_time(minute_text, sizeof(minute_text), "%M", &pblTime);
+
 	graphics_context_set_stroke_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_fill_color(ctx, FOREGROUND_COLOR);
 	graphics_context_set_text_color(ctx, FOREGROUND_COLOR);
 
-	graphics_text_draw(ctx, MINUTE_LABEL_TEXT, FONT, GRect(72, BAR_MIN_LOC, 72, (168 - BAR_MIN_LOC)), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-	
 	x = MINUTE_LOC;
 	y = BAR_MIN_LOC - (int)(minute * MINUTE_UNIT_HEIGHT);
 	w = MINUTE_WIDTH;
 	h = (int)(minute * MINUTE_UNIT_HEIGHT);
 
 	graphics_fill_rect(ctx, GRect( x, y, w, h ), CORNER_SIZE, CORNER_MASK);
-
-	string_format_time(minute_text, sizeof(minute_text), "%M", &pblTime);
-	graphics_text_draw(ctx, minute_text, FONT, GRect(MINUTE_LOC, (y - BAR_MAX_LOC), 72, BAR_MAX_LOC), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+	graphics_text_draw(ctx, minute_text, NUM_FONT, GRect(72, NUM_LABEL_MAX_LOC, 72, NUM_LABEL_HEIGHT), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+	graphics_text_draw(ctx, MINUTE_LABEL_TEXT, TEXT_FONT, GRect(72, TEXT_LABEL_MAX_LOC, 72, TEXT_LABEL_HEIGHT), GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
 }
 
 void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t)

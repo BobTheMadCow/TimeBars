@@ -1,7 +1,13 @@
 {
     "media": [
         {
-            "characterRegex": "[0-9HOUR MINS]",
+            "characterRegex": "[0-9 ]",
+            "defName": "FONT_TYPEONE_34",
+            "type": "font",
+            "file": "fonts/typeone.ttf"
+        },
+        {
+            "characterRegex": "[HOURMINS]",
             "defName": "FONT_TYPEONE_24",
             "type": "font",
             "file": "fonts/typeone.ttf"
