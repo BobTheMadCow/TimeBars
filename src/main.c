@@ -81,10 +81,15 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 		if(hour > 12)
 		{
 			hour -= 12;
+		}		
+		else if(hour == 0)
+		{
+			hour = 12;	//for correct hieght bar in 12 hour mode
 		}
 //	%I 	Two digit representation of the hour in 12-hour format 	01 through 12
 //	%l (lower-case 'L') 	Hour in 12-hour format, with a space preceding single digits 	1 through 12
 		time_format = "%l";
+
 	}
 	string_format_time(hour_text, sizeof(hour_text), time_format, &pblTime);
 
