@@ -1,6 +1,11 @@
 {
     "media": [
         {
+            "defName": "IMAGE_MENU_ICON",
+            "type": "png",
+            "file": "images/TimeBarsIcon.png"
+        },
+        {
             "characterRegex": "[0-9 ]",
             "defName": "FONT_TYPEONE_34",
             "type": "font",

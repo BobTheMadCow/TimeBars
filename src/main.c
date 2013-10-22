@@ -7,30 +7,23 @@
 PBL_APP_INFO(MY_UUID,
              "TimeBars", "BobTheMadCow",
              1, 0, /* App version */
-             DEFAULT_MENU_ICON,
+             RESOURCE_ID_IMAGE_MENU_ICON,
              APP_INFO_WATCH_FACE);
 
-Window window;
-Layer hour_bar_layer;
-Layer minute_bar_layer;
-
-#define GRect( x, y, w,	h ) ((GRect){{(x), (y)}, {(w), (h)}})
-	
+/********************
+	 vHOUR_LOC
+	+--------+ 
+	| 12  59 | NUM_LABEL_OFFSET
+	|,--.,--.| BAR_MAX_LOC
+	||  ||  || 
+	||  ||  || 
+	|+--++--+| BAR_MIN_LOC 
+	|HOURMINS| TEXT_LABEL_MAX_LOC
+	+--------+ TEXT_LABEL_MIN_LOC
+	     ^MINUTE_LOC
+*********************/
 #define CORNER_MASK GCornersTop
 #define CORNER_SIZE 12
-
-//origin of Pebble's 2D coordinate system is in the upper, lefthand corner its x-axis 
-//extends to the right and its y-axis extends to the bottom of the screen. 
-/********************
-	+--------+ 
-	| 12  59 | 
-	|,--.,--.| 
-	||  ||  || 
-	||  ||  || 
-	|+--++--+| 
-	|HOURMINS| 
-	+--------+ 
-*********************/
 #define BAR_MAX_LOC 22
 #define BAR_MIN_LOC 150
 #define MAX_HEIGHT (BAR_MIN_LOC - BAR_MAX_LOC)
@@ -40,6 +33,7 @@ Layer minute_bar_layer;
 #define MINUTE_WIDTH 66
 #define HOUR_UNIT_HEIGHT (MAX_HEIGHT/12.0f)
 #define MINUTE_UNIT_HEIGHT (MAX_HEIGHT/60.0f)
+	
 #define TEXT_LABEL_MAX_LOC 142
 #define TEXT_LABEL_MIN_LOC 168
 #define TEXT_LABEL_HEIGHT (TEXT_LABEL_MIN_LOC - TEXT_LABEL_MAX_LOC)
@@ -48,14 +42,17 @@ Layer minute_bar_layer;
 
 #define HOUR_LABEL_TEXT "HOUR"
 #define MINUTE_LABEL_TEXT "MINS"
-//#define TEXT_FONT fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TYPEONE_24))
-//#define NUM_FONT fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TYPEONE_34))
-GFont text_font;
-GFont num_font;
 	
 #define BACKGROUND_COLOR GColorWhite
 #define FOREGROUND_COLOR GColorBlack
 	
+Window window;
+Layer hour_bar_layer;
+Layer minute_bar_layer;
+
+GFont text_font;
+GFont num_font;
+
 // Need to be static because it's used by the system later.
 static char hour_text[] = "00";
 static char minute_text[] = "00";
@@ -72,8 +69,8 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 	if(clock_is_24h_style())
 	{
 		adjusted_hour_unit_height = HOUR_UNIT_HEIGHT / 2.0f;
-//	%H 	Two digit representation of the hour in 24-hour format 	00 through 23
-//	%k 	Two digit representation of the hour in 24-hour format, with a space preceding single digits 	0 through 23
+		//	%H 	Two digit representation of the hour in 24-hour format 	00 through 23
+		//	%k 	Two digit representation of the hour in 24-hour format, with a space preceding single digits 	0 through 23
 		time_format = "%H";
 	}
 	else
@@ -86,10 +83,9 @@ void update_hour_bar_callback(Layer *me, GContext* ctx)
 		{
 			hour = 12;	//for correct hieght bar in 12 hour mode
 		}
-//	%I 	Two digit representation of the hour in 12-hour format 	01 through 12
-//	%l (lower-case 'L') 	Hour in 12-hour format, with a space preceding single digits 	1 through 12
+		//	%I 	Two digit representation of the hour in 12-hour format 	01 through 12
+		//	%l (lower-case 'L') 	Hour in 12-hour format, with a space preceding single digits 	1 through 12
 		time_format = "%l";
-
 	}
 	string_format_time(hour_text, sizeof(hour_text), time_format, &pblTime);
 
@@ -144,8 +140,6 @@ void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t)
 
 void handle_init(AppContextRef ctx) 
 {
-	(void)ctx;
-	
 	resource_init_current_app(&APP_RESOURCES);
 	
 	window_init(&window, "TimeBars");
@@ -154,7 +148,7 @@ void handle_init(AppContextRef ctx)
 	
 	text_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TYPEONE_24));
 	num_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TYPEONE_34));
-	
+		
 	layer_init(&hour_bar_layer, window.layer.frame);
 	hour_bar_layer.update_proc = update_hour_bar_callback;
 	layer_add_child(&window.layer, &hour_bar_layer);
